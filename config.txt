@@ -1,0 +1,15 @@
+Generation seed (def: 420)
+420
+Max iteration number (def: 100)
+100
+Max number of tests per iteration (def: 50)
+50
+Number of works (def: 5)
+5
+Number of machines (def: 4)
+4
+Number of pauses (def 2)
+2
+Pauses (def 7-12 and 18-23)
+7-12
+18-23
