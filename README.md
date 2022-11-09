@@ -22,37 +22,42 @@
 ## main
 > - *Program elindítása, seed beállítása*
 
-## readinput
-> - *Egy egyszerű file-reader a configurációk beolvasásához*
+## read_from_file
+> - *Egy egyszerű file-reader a konfigurációk beolvasásához*
 > - *Minden kiolvasott adatt visszakerül a main függvénybe, ahonnan elindul a feladat generálása.*
 
-## generate_work
-> - *Legenerálja a configurációk alapján a feladatot tartalmazó tömböket, majd elindítja a szimulált hűtést.*
-> - *A 'BEST' változó tartalmazza az adott keresés legjobb eredményét, a 'BEST_ALLTIME' változó tartalmazza az eddigi összes keresés legjobb eredményét.*
-> - *A 'base' változó tartalmazza az alaphalmazt, ami alapján folyik a keresés, míg a 'data' változó tartalmazza a base egyik változatát.*
-> - *Mindig a 'data' változó alapján folyik a keresés, jobb eredmény esetén(vagy ha a hűtés megengedi) a 'base' változó felülíródik a 'data' változó tartalmával.*
-> - *Így mindig a legjobb eredmény egy újább változatával keresünk.*
-> - *A 'BESTWAY' változó tartalmazza az eddigi legjobb kombinációt.*
-> - *A munkák a 'Matrix' változóban vannak elmentve, amelyet a függvény generált.*
+## generate_random_jobs
 > - *Minden adatot a 'log.txt' file-ba ment a program.*
+> - *Legenerálja a konfigurációk alapján a feladatot tartalmazó tömböket, majd elindítja a keresést.*
+> - *A munkák az 'array_of_jobs' változóban vannak elmentve, amelyet a függvény generált.*
+
+## start_search
+> - *A függvény indítja a szömszédsági kereséseket egymás után egy ciklusban.*
 > - *A szomszédsági keresés egy egyszerű ciklusban történik. A 'base' változó véletlenszerűen kiválasztott 2 elemét megcseréljük, ez lesz a 'data' változónk.*
-> - *Megcserélés után lefuttatjuk a szimulált hűtés algoritmust(anneling_start), majd az eredmény alapján eldöntjük, hogy jó-e az eredmény.*
+
+## start_test
+> - *Mindig a 'data' változó alapján folyik a keresés, jobb eredmény esetén(vagy ha a hűtés megengedi) a 'base' változó felülíródik a 'data' változó tartalmával.*
+> - *A 'best_time_of_current_search' változó tartalmazza az adott keresés legjobb eredményét, a 'best_time_of_alltime_search' változó tartalmazza az eddigi összes keresés legjobb eredményét.*
+> - *A 'base' változó tartalmazza az alaphalmazt, ami alapján folyik a keresés, míg a 'data' változó tartalmazza a base egyik változatát.*
+> - *Így mindig a legjobb eredmény egy újább változatával keresünk.*
+> - *A 'best_found_solution' változó tartalmazza az eddigi legjobb kombinációt.*
+> - *Megcserélés után lefuttatjuk a szimulált hűtés algoritmust(simulation), majd az eredmény alapján eldöntjük, hogy jó-e az eredmény.*
 > - *Ha az eredmény jobb, mint a keresések legjobbja, akkor új bázist választunk. Amennyiben rosszabb az eredmény, eldöntjük a hűtéssel, hogy elfogadjuk-e vagy sem.*
 > - *Ha elfogadjuk a rosszabb eredményt, akkor új bázist választunk. Ha nem fogadjuk el, akkor megy tovább a ciklus a változatlan bázissal.*
 
-## anneling_start
+## simulation
 > - *A kombinációk idejének kiszámításáért felelős függvény.*
 > - *A 'Current_work' változó tárolja az adott gép munkájának hosszúságát, a 'Current_done' változó pedig az adott gép által már elkészített munkákat tárolja.*
 > - *A ciklusunk addig megy, amíg az utolsó gép be nem fejezi az utolsó munkáját.*
 > - *A ciklusban az időt folyamatosan növeljük iterációnként, a 'Current_work' változót pedig folyamatosan csökkentjük.*
 > - *Amennyiben a 'Current_work' változó eléri a 0-át, azaz befejezte az adott munkát, akkor a 'Current_done' változót növeljük 1-el, a 'Current_work' változót bedig beállítjuk a következő munka hosszúságára.*
-> - *Mielőtt elkezdjük csökkenteni a 'Current_work' változót, előtte leellenőrizzük, hogy a munkát nem zavarja-e az adott szünet.(checkwork)*
-> - *Leellenőrizzük a ciklus után, hogy jobb eredményt kaptunk-e, majd visszatérünk a generate_work függvénybe.*
+> - *Mielőtt elkezdjük csökkenteni a 'Current_work' változót, előtte leellenőrizzük, hogy a munkát nem zavarja-e az adott szünet.(check_pauses_and_current_work)*
+> - *Leellenőrizzük a ciklus után, hogy jobb eredményt kaptunk-e, majd visszatérünk a start_test függvénybe, majd a start_search függvénybe.*
 
-## checkwork
+## check_pauses_and_current_work
 > - *A szünetek ellenörzéséért felelős függvény*
 > - *Egy ciklusban végigmegy az összes munkaszüneten, majd leellenörzi az adott munkát.*
 > - *A munka nem kezdődhet szünetben, nem fejeződhet be szünetben és a munkát nem vághatja félbe a szünet.*
 
-## printarr
+## print_array
 > - *Egy egyszerű függvény, amely a tömbök szebb kiíratásáért felelős.*
