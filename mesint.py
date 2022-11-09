@@ -1,179 +1,206 @@
 import random
 import math
 import time
+import matplotlib.pyplot as plt
+import numpy as np
+plt.style.use('_mpl-gallery')
+fig, ax = plt.subplots()
 
 def main():
-    pauses=[]
-    max_interations,max_tests,seed,work,machine,numpauses,pauses=readinput()
-    random.seed(seed)
-    generate_work(max_interations,max_tests,machine,work,pauses,numpauses)
+    array_of_pauses=[]
+    number_of_max_iterations,number_of_max_tests_per_iteration,generation_seed,number_of_works,number_of_machines,number_of_pauses,array_of_pauses=read_from_file()
+    random.seed(generation_seed)
+    array_of_jobs = [[0 for x in range(number_of_machines)] for y in range(number_of_works)]
+    array_of_jobs = generate_random_jobs(number_of_machines,number_of_works)
+    start_search(number_of_max_iterations,number_of_max_tests_per_iteration,number_of_machines,number_of_works,array_of_pauses,number_of_pauses,array_of_jobs)
 
-def readinput():
-    finput=open("config.txt", "r")
+def read_from_file():
+    file_input=open("config.txt", "r")
 
-    pauses=[]
-    useless=finput.readline()
-    SEED=int(finput.readline())
-    useless=finput.readline()
-    MAX_ITERATION = int(finput.readline())
-    useless=finput.readline()
-    MAX_TEST_PER_ITERATION = int(finput.readline())
-    useless=finput.readline()
-    WORK = int(finput.readline())
-    useless=finput.readline()
-    MACHINE = int(finput.readline())
-    useless=finput.readline()
-    PAUSES = int(finput.readline())
-    useless=finput.readline()
-    for i in range(PAUSES):
-        useless=finput.readline()
-        useless=useless.replace('\n','')
-        splitted=useless.split("-")
-        pauses+=[splitted]
-    finput.close()
-
-
-    
-    print("Number of machines: ",MACHINE)
-    print("Number of work: ",WORK)
-    print("Number of iterations: ",math.factorial(WORK))
-    print("Iterations will be checked: ",MAX_ITERATION*MAX_TEST_PER_ITERATION)
+    array_of_pauses=[]
+    file_input.readline()
+    generation_seed=int(file_input.readline())
+    file_input.readline()
+    number_of_max_iterations = int(file_input.readline())
+    file_input.readline()
+    number_of_max_tests_per_iteration = int(file_input.readline())
+    file_input.readline()
+    number_of_works = int(file_input.readline())
+    file_input.readline()
+    number_of_machines = int(file_input.readline())
+    file_input.readline()
+    number_of_pauses = int(file_input.readline())
+    file_input.readline()
+    for i in range(number_of_pauses):
+        splitted=file_input.readline().replace('\n','').split("-")
+        array_of_pauses+=[splitted]
+    file_input.close()
 
     
-    return MAX_ITERATION,MAX_TEST_PER_ITERATION,SEED,WORK,MACHINE,PAUSES,pauses
+    print("Number of machines: ",number_of_machines)
+    print("Number of work: ",number_of_works)
+    print("Number of iterations: ",math.factorial(number_of_works))
+    print("Iterations will be checked: ",number_of_max_iterations*number_of_max_tests_per_iteration)
 
-def generate_work(MAX_ITERATION,MAX_TEST_PER_ITERATION,MACHINE,WORK,pauses,numpauses):
-    BEST = 0
-    BEST_ALLTIME = 0
-    ITERATIONS = 0
-    BESTWAY = []
-    base = []
-    data= []
-    Matrix = [[0 for x in range(MACHINE)] for y in range(WORK)]
     
-    f = open("log.txt", "w")
-    for i in range (WORK):
-        f.write("J"+str(i)+"\t")
-    f.write("\n")
-    for macs in range(MACHINE):
-        for jobs in range(WORK):
-            Matrix[jobs][macs]=random.randint(1,10)
-            f.write(str(Matrix[jobs][macs]))
-            f.write("\t")
-        f.write("\n")
+    return number_of_max_iterations,number_of_max_tests_per_iteration,generation_seed,number_of_works,number_of_machines,number_of_pauses,array_of_pauses
 
+
+def generate_random_jobs(number_of_machines,number_of_works):
+    array_of_jobs = [[0 for x in range(number_of_machines)] for y in range(number_of_works)]
+    file_output = open("log.txt", "w")
+    for i in range (number_of_works):
+        file_output.write("J"+str(i)+"\t")
+    file_output.write("\n")
+    for macs in range(number_of_machines):
+        for jobs in range(number_of_works):
+            array_of_jobs[jobs][macs]=random.randint(1,10)
+            file_output.write(str(array_of_jobs[jobs][macs]))
+            file_output.write("\t")
+        file_output.write("\n")
     print("Generated datas and logs can be found in log.txt")
-    
-    for i in range(WORK):
-        base+=[i]
-    
-    f.write("Base lineup: "+printarr(base)+"\n")
-    BESTWAY = base.copy()
-    print("Starting simulated anneling...")
-    for i in range(MAX_ITERATION):
-        for p in range(MAX_TEST_PER_ITERATION):
-            data = base.copy()
-            a= random.randint(0,WORK-1)
-            b= random.randint(0,WORK-1)
-            while a==b:
-                a= random.randint(0,WORK-1)
-                b= random.randint(0,WORK-1)
-            temp=data[a]
-            data[a]=data[b]
-            data[b]=temp
-            #f.write("Try new base: "+printarr(data)+"\n")
-            result,BEST,BEST_ALLTIME,BESTWAY,time=anneling_start(MACHINE,WORK,Matrix,data,BEST,BEST_ALLTIME,BESTWAY,pauses,numpauses)
-            if result==1:
-                base=data.copy()
-                f.write("Found new best time: "+printarr(data)+" with "+str(BEST)+ "time\n")
-            elif result==0:
-                temp=pow(0.95,ITERATIONS)*100000
-                if random.random()<math.exp((BEST_ALLTIME-time)/temp):
-                    f.write("New Worse base found and accepted: "+printarr(data)+" with "+str(time)+ "time. Chance: "+str(math.exp((BEST_ALLTIME-time)/temp))+"\n")
-                    base=data.copy()
-                    BEST=time
-                else:
-                    f.write("New Worse base found and declined: "+printarr(data)+" with "+str(time)+" Chance: "+str(math.exp((BEST_ALLTIME-time)/temp))+"\n")
-            ITERATIONS+=1
-    f.write("\n\n\nThe best way: "+str(printarr(BESTWAY))+"with time: "+str(BEST_ALLTIME))
-    print("Best way: ",str(printarr(BESTWAY)), "\nTime: ",BEST_ALLTIME)
-    f.close()
+    file_output.close()
+    return array_of_jobs
 
-def anneling_start(MACHINE,WORK,Matrix,works,BEST,BEST_ALLTIME,BESTWAY,pauses,numpauses):
-    Current_work = [-1 for x in range(MACHINE)]
-    Current_done = [0 for x in range(MACHINE)]
-    for i in range(MACHINE):
-        Current_work[i]=Matrix[works[0]][i]
+def start_search(number_of_max_iterations,number_of_max_tests_per_iteration,number_of_machines,number_of_works,array_of_pauses,number_of_pauses,array_of_jobs):
+    global ax
+    best_time_of_current_search = best_time_of_alltime_search = ITERATIONS = 0
+    best_found_solution = []
+    temp_best_found_solution = []
+    base = []
+    temp_base = []
+    
+    for i in range(number_of_works):
+        base+=[i]
+
+    file_output = open("log.txt", "a")
+    file_output.write("Base lineup: "+print_array(base)+"\n")
+    best_found_solution = base.copy()
+    print("Starting simulated anneling...")
+
+    
+    
+    for i in range(number_of_max_iterations):
+        for p in range(number_of_max_tests_per_iteration):
+            temp_base,ITERATIONS,best_time_of_current_search,best_time_of_alltime_search,temp_best_found_solution=start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,file_output,base,ITERATIONS)
+            base=temp_base.copy()
+            best_found_solution=temp_best_found_solution.copy()
+
+    
+    file_output.write("\n\n\nThe best way: "+str(print_array(best_found_solution))+"with time: "+str(best_time_of_alltime_search))
+    print("Best way: ",str(print_array(best_found_solution)), "\nTime: ",best_time_of_alltime_search)
+    file_output.close()
+
+    
+    result,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,time=simulation(number_of_machines,number_of_works,array_of_jobs,best_found_solution,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,1)
+    ax.set(xlim=(0, best_time_of_alltime_search), xticks=np.arange(0, best_time_of_alltime_search),
+       ylim=(0, number_of_machines), yticks=np.arange(0, number_of_machines+1))
+    plt.show()
+
+def start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,file_output,base,ITERATIONS):
+    data = []
+    data = base.copy()
+    temp_base = base.copy()
+    a = random.randint(0,number_of_works-1)
+    b = random.randint(0,number_of_works-1)
+    
+    while a==b:
+         a = random.randint(0,number_of_works-1)
+         b = random.randint(0,number_of_works-1)
+    temp=data[a]
+    data[a]=data[b]
+    data[b]=temp
+    
+    result,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,time=simulation(number_of_machines,number_of_works,array_of_jobs,data,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,0)
+
+    if result==1:
+        temp_base=data.copy()
+        file_output.write("Found new best time: "+print_array(data)+" with "+str(best_time_of_current_search)+ "time\n")
+    elif result==0:
+        temp=pow(0.95,ITERATIONS)*100000
+        if temp==0:
+            file_output.write("New Worse base found and declined: "+print_array(data)+" with "+str(time)+" Chance: 0\n")
+        else:
+            if random.random()<math.exp((best_time_of_alltime_search-time)/temp):
+                file_output.write("New Worse base found and accepted: "+print_array(data)+" with "+str(time)+ "time. Chance: "+str(math.exp((best_time_of_alltime_search-time)/temp))+"\n")
+                temp_base=data.copy()
+                best_time_of_current_search=time
+            else:
+                file_output.write("New Worse base found and declined: "+print_array(data)+" with "+str(time)+" Chance: "+str(math.exp((best_time_of_alltime_search-time)/temp))+"\n")
+    return temp_base,ITERATIONS+1,best_time_of_current_search,best_time_of_alltime_search,best_found_solution
+
+def simulation(number_of_machines,number_of_works,array_of_jobs,order_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,mode):
+    global ax
+    Current_work = [-1 for x in range(number_of_machines)]
+    Current_done = [0 for x in range(number_of_machines)]
+    for i in range(number_of_machines):
+        Current_work[i]=array_of_jobs[order_of_jobs[0]][i]
 
     
     time = -1
-    ann_best=BEST
-    ann_all=BEST_ALLTIME
-    best_way = BESTWAY.copy()
-
-
+    temp_best_found_solution = best_found_solution.copy()
     
-    while Current_done[MACHINE-1]!=WORK:
+    while Current_done[number_of_machines-1]!=number_of_works:
         time+=1
-        for i in range(MACHINE):
+        for i in range(number_of_machines):
             if Current_work[i]==0:
                 Current_done[i]+=1
-                if Current_done[i]>=WORK:
-                    Current_done[i]=WORK
+                if Current_done[i]>=number_of_works:
+                    Current_done[i]=number_of_works
+                    Current_work[i]=-1
                 else:
-                    Current_work[i]=Matrix[works[Current_done[i]]][i]
-                    if i==0 and checkwork(time,Current_work[i],pauses,numpauses):
+                    Current_work[i]=array_of_jobs[order_of_jobs[Current_done[i]]][i]
+                    if i==0 and check_pauses_and_current_work(time,Current_work[i],array_of_pauses,number_of_pauses):
                         Current_work[i]-=1
                     else:
-                        if Current_done[i-1]>Current_done[i]  and checkwork(time,Current_work[i],pauses,numpauses):
+                        if Current_done[i-1]>Current_done[i]  and check_pauses_and_current_work(time,Current_work[i],array_of_pauses,number_of_pauses):
                             Current_work[i]-=1
+                if mode==1:
+                    
+                    ax.bar(time-array_of_jobs[order_of_jobs[Current_done[i]-1]][i], 1, width=array_of_jobs[order_of_jobs[Current_done[i]-1]][i],bottom=number_of_machines-i-1, edgecolor="white", linewidth=0.7,align='edge')
             else:
                 if i==0:
-                    if checkwork(time,Current_work[i],pauses,numpauses):
+                    if check_pauses_and_current_work(time,Current_work[i],array_of_pauses,number_of_pauses):
                         Current_work[i]-=1
                 else:
-                    if Current_done[i-1]>Current_done[i] and checkwork(time,Current_work[i],pauses,numpauses):
+                    if Current_done[i-1]>Current_done[i] and check_pauses_and_current_work(time,Current_work[i],array_of_pauses,number_of_pauses):
                         Current_work[i]-=1
         
 
-    if ann_best == 0:
-        ann_best = time
-
+    if best_time_of_current_search == 0:
+        best_time_of_current_search = time
         
-    if ann_all == 0:
-        ann_all = ann_best
-
+    if best_time_of_alltime_search == 0:
+        best_time_of_alltime_search = best_time_of_current_search
         
-    if ann_best >time:
-        ann_best = time
-        if ann_all > ann_best:
-            ann_all = ann_best
-            best_way=works.copy()
-        return 1,ann_best,ann_all,best_way,time
+    if best_time_of_current_search > time:
+        best_time_of_current_search = time
+        if best_time_of_alltime_search > best_time_of_current_search:
+            best_time_of_alltime_search = best_time_of_current_search
+            temp_best_found_solution=order_of_jobs.copy()
+        return 1,best_time_of_current_search,best_time_of_alltime_search,temp_best_found_solution,time
 
+    if best_time_of_current_search == time:
+        return 2,best_time_of_current_search,best_time_of_alltime_search,temp_best_found_solution,time
     
-    if ann_best == time:
-        return 2,ann_best,ann_all,best_way,time
+    return 0,best_time_of_current_search,best_time_of_alltime_search,temp_best_found_solution,time
 
-    
-    return 0,ann_best,ann_all,best_way,time
-
-def checkwork(time,current_work,pauses,numpauses):
-    for i in range(numpauses):
-        if time>=int(pauses[i][1]):
+def check_pauses_and_current_work(time,current_work,array_of_pauses,number_of_pauses):
+    for i in range(number_of_pauses):
+        if time>=int(array_of_pauses[i][1]):
             continue
-        if time<=int(pauses[i][0]) and time+current_work<=int(pauses[i][0]):
+        if time<=int(array_of_pauses[i][0]) and time+current_work<=int(array_of_pauses[i][0]):
             continue
-        if time>=int(pauses[i][0]) and time<=int(pauses[i][1]):
+        if time>=int(array_of_pauses[i][0]) and time<=int(array_of_pauses[i][1]):
             return False
-        if time+current_work>=int(pauses[i][0]) and time+current_work<=int(pauses[i][1]):
+        if time+current_work>=int(array_of_pauses[i][0]) and time+current_work<=int(array_of_pauses[i][1]):
             return False
-        if time<=int(pauses[i][0]) and time+current_work>=int(pauses[i][1]):
+        if time<=int(array_of_pauses[i][0]) and time+current_work>=int(array_of_pauses[i][1]):
             return False
     return True
 
 
-def printarr(array):
+def print_array(array):
     string=""
     j=0
     for i in array:
