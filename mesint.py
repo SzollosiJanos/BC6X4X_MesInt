@@ -3,8 +3,6 @@ import math
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-plt.style.use('_mpl-gallery')
-fig, ax = plt.subplots()
 
 def main():
     array_of_pauses=[]
@@ -74,7 +72,8 @@ def generate_random_jobs(number_of_machines,number_of_works,file_output):
     return array_of_jobs
 
 def start_search(number_of_max_iterations,number_of_max_tests_per_iteration,number_of_machines,number_of_works,array_of_pauses,number_of_pauses,array_of_jobs,file_output):
-    global ax
+    plt.style.use('_mpl-gallery')
+    fig, ax = plt.subplots()
     best_time_of_current_search = best_time_of_alltime_search = ITERATIONS = 0
     best_found_solution = []
     temp_best_found_solution = []
@@ -92,7 +91,7 @@ def start_search(number_of_max_iterations,number_of_max_tests_per_iteration,numb
     
     for i in range(number_of_max_iterations):
         for p in range(number_of_max_tests_per_iteration):
-            temp_base,ITERATIONS,best_time_of_current_search,best_time_of_alltime_search,temp_best_found_solution=start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,file_output,base,ITERATIONS)
+            temp_base,ITERATIONS,best_time_of_current_search,best_time_of_alltime_search,temp_best_found_solution=start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,file_output,base,ITERATIONS,ax)
             base=temp_base.copy()
             best_found_solution=temp_best_found_solution.copy()
 
@@ -102,14 +101,14 @@ def start_search(number_of_max_iterations,number_of_max_tests_per_iteration,numb
 
 
     
-    result,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,time=simulation(number_of_machines,number_of_works,array_of_jobs,best_found_solution,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,1)
+    result,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,time=simulation(number_of_machines,number_of_works,array_of_jobs,best_found_solution,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,1,ax)
     ax.set(xlim=(0, best_time_of_alltime_search), xticks=np.arange(0, best_time_of_alltime_search),
        ylim=(0, number_of_machines), yticks=np.arange(0, number_of_machines+1))
     plt.show()
 
     
 
-def start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,file_output,base,ITERATIONS):
+def start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,file_output,base,ITERATIONS,ax):
     data = []
     data = base.copy()
     temp_base = base.copy()
@@ -123,7 +122,7 @@ def start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_cur
     data[a]=data[b]
     data[b]=temp
     
-    result,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,time=simulation(number_of_machines,number_of_works,array_of_jobs,data,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,0)
+    result,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,time=simulation(number_of_machines,number_of_works,array_of_jobs,data,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,0,ax)
 
     if result==1:
         temp_base=data.copy()
@@ -141,9 +140,7 @@ def start_test(number_of_machines,number_of_works,array_of_jobs,best_time_of_cur
                 file_output.write("New Worse base found and declined: "+print_array(data)+" with "+str(time)+" Chance: "+str(math.exp((best_time_of_alltime_search-time)/temp))+"\n")
     return temp_base,ITERATIONS+1,best_time_of_current_search,best_time_of_alltime_search,best_found_solution
 
-def simulation(number_of_machines,number_of_works,array_of_jobs,order_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,mode):
-    global ax
-
+def simulation(number_of_machines,number_of_works,array_of_jobs,order_of_jobs,best_time_of_current_search,best_time_of_alltime_search,best_found_solution,array_of_pauses,number_of_pauses,mode,ax):
     machine_start = [[0 for x in range(int(number_of_works))] for y in range(int(number_of_machines))]
     machine_end = [[0 for x in range(int(number_of_works))] for y in range(int(number_of_machines))]
 
@@ -189,7 +186,7 @@ def simulation(number_of_machines,number_of_works,array_of_jobs,order_of_jobs,be
                                 break
             machine_end[order_of_jobs[i]][r]=int(machine_start[order_of_jobs[i]][r])+int(array_of_jobs[order_of_jobs[i]][r])
             if mode:
-                ax.bar(machine_start[order_of_jobs[i]][r], 1, width=array_of_jobs[order_of_jobs[i]][r],bottom=number_of_machines-r-1, edgecolor="white", linewidth=0.7,align='edge')
+                ax.bar(machine_start[order_of_jobs[i]][r], 1, width=array_of_jobs[order_of_jobs[i]][r],bottom=number_of_machines-r-1, edgecolor="white", linewidth=0.7,align='edge',color=str((r%2)/2))
 
     time = machine_end[order_of_jobs[number_of_works-1]][number_of_works-1]
     temp_best_found_solution = best_found_solution.copy()
